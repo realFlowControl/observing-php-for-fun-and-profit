@@ -1,0 +1,8 @@
+[env]
+EXT_PHP_RS_ALLOWED_BINDINGS = "zend_compile_file, zend_op_array"
+
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "link-args=-undefined dynamic_lookup"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-args=-undefined dynamic_lookup"]

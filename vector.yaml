@@ -1,0 +1,19 @@
+sources:
+  logs:
+    type: file
+    include:
+      - /logs/log.json
+    read_from: beginning
+
+sinks:
+  graylog:
+    type: http
+    encoding:
+      codec: gelf
+    inputs:
+      - logs
+    uri: "http://graylog:12201/gelf"
+    framing:
+      method: "character_delimited"
+      character_delimited:
+        delimiter: "\n"
