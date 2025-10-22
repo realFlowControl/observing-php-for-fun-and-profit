@@ -8,6 +8,7 @@
 ```bash
 git clone https://github.com/realFlowControl/observing-php-for-fun-and-profit.git
 cd observing-php-for-fun-and-profit
+make build
 make prep
 ```
 
