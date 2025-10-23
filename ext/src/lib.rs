@@ -1,4 +1,7 @@
+use std::fs::OpenOptions;
+
 use ext_php_rs::{ffi::{_zend_file_handle, _zend_op_array, _zend_string, zend_compile_file}, prelude::*};
+use structured_logger::{json::new_writer, Builder};
 
 #[php_function]
 pub fn hello_world(name: &str) -> String {
@@ -11,6 +14,14 @@ extern "C" fn startup(_type: i32, _num: i32) -> i32 {
         PREV_ZEND_COMPILE_FILE = zend_compile_file;
         zend_compile_file = Some(compile_file);
     }
+    let log_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("/logs/log.json")
+        .expect("Failed to open log file");
+    Builder::with_level("info")
+        .with_target_writer("*", new_writer(log_file))
+        .init();
     0
 }
 
@@ -37,6 +48,7 @@ unsafe extern "C" fn compile_file (file: *mut _zend_file_handle, r#type: i32) ->
             let start = std::time::Instant::now();
             let op_array = fun(file, r#type);
             let duration = start.elapsed();
+            log::info!(duration = duration.as_nanos(); "File compiled");
             println!("duration: {}", duration.as_nanos());
             return op_array;
         }

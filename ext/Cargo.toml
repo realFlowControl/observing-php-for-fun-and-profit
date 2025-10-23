@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 ext-php-rs = "0.14"
+log = "*"
+structured-logger = "*"
