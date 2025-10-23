@@ -1,7 +1,10 @@
-use std::fs::OpenOptions;
+use std::{fs::OpenOptions, time::Instant};
 
-use ext_php_rs::{ffi::{_zend_file_handle, _zend_op_array, _zend_string, zend_compile_file}, prelude::*};
-use structured_logger::{json::new_writer, Builder};
+use ext_php_rs::{
+    ffi::{_zend_file_handle, _zend_op_array, _zend_string, zend_compile_file},
+    prelude::*,
+};
+use structured_logger::{Builder, json::new_writer};
 
 #[php_function]
 pub fn hello_world(name: &str) -> String {
@@ -30,19 +33,33 @@ extern "C" fn shutdown(_type: i32, _num: i32) -> i32 {
     0
 }
 
+static mut R_TIMER: Option<Instant> = None;
+
 extern "C" fn rinit(_type: i32, _num: i32) -> i32 {
+    unsafe {
+        R_TIMER = Some(std::time::Instant::now());
+    }
     println!("RINIT");
     0
 }
 
 extern "C" fn rshutdown(_type: i32, _num: i32) -> i32 {
+    unsafe {
+        let duration = R_TIMER.unwrap_unchecked().elapsed();
+        log::info!(duration = duration.as_nanos(); "Request");
+    }
     println!("RSHUTDOWN");
     0
 }
 
-static mut PREV_ZEND_COMPILE_FILE: Option<unsafe extern "C" fn(*mut _zend_file_handle, i32) -> *mut _zend_op_array> = None;
+static mut PREV_ZEND_COMPILE_FILE: Option<
+    unsafe extern "C" fn(*mut _zend_file_handle, i32) -> *mut _zend_op_array,
+> = None;
 
-unsafe extern "C" fn compile_file (file: *mut _zend_file_handle, r#type: i32) -> *mut _zend_op_array {
+unsafe extern "C" fn compile_file(
+    file: *mut _zend_file_handle,
+    r#type: i32,
+) -> *mut _zend_op_array {
     unsafe {
         if let Some(fun) = PREV_ZEND_COMPILE_FILE {
             let start = std::time::Instant::now();
