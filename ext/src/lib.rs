@@ -65,8 +65,8 @@ unsafe extern "C" fn compile_file(
             let start = std::time::Instant::now();
             let op_array = fun(file, r#type);
             let duration = start.elapsed();
-            log::info!(duration = duration.as_nanos(); "File compiled");
-            println!("duration: {}", duration.as_nanos());
+            // log::info!(duration = duration.as_nanos(); "File compiled");
+            println!("duration: {} file: {}", duration.as_nanos(), zend_string_to_string((*file).filename));
             return op_array;
         }
     }
